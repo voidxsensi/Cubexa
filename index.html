@@ -144,13 +144,35 @@
         <div id="chat-messages" class="max-w-3xl mx-auto flex flex-col gap-6 hidden"></div>
       </div>
 
-      <!-- INPUT AREA -->
+      <!-- INPUT AREA WITH ATTACHMENT SUPPORT -->
       <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-main-light via-main-light to-transparent dark:from-main-dark dark:via-main-dark p-4 pt-10">
         <div class="max-w-3xl mx-auto relative group">
-          <form id="chat-form" class="relative flex items-end shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-3xl bg-white dark:bg-[#1e1f22] border border-gray-200 dark:border-gray-700 transition-colors focus-within:border-gray-300 dark:focus-within:border-gray-500">
-            <textarea id="chat-input" rows="1" class="w-full max-h-48 resize-none bg-transparent border-0 focus:ring-0 px-6 py-4 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none leading-relaxed" placeholder="Message Universal AI..."></textarea>
-            <div class="p-2 h-full flex items-center mb-1">
-              <button type="submit" id="btn-send" class="p-2 rounded-full text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <form id="chat-form" class="relative flex flex-col shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-3xl bg-white dark:bg-[#1e1f22] border border-gray-200 dark:border-gray-700 transition-colors focus-within:border-gray-300 dark:focus-within:border-gray-500">
+            
+            <!-- Image Preview Area -->
+            <div id="attachment-preview" class="hidden px-4 pt-4 pb-0">
+              <div class="relative inline-block">
+                <img id="preview-img" src="" class="h-16 w-16 object-cover rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm">
+                <button type="button" id="btn-remove-attachment" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow transition-transform hover:scale-110">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Text Input & Buttons -->
+            <div class="flex items-end w-full p-2">
+              
+              <!-- Hidden File Input -->
+              <input type="file" id="file-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/gif">
+              
+              <!-- Plus (+) Button -->
+              <button type="button" id="btn-attach" class="p-3 mb-1 ml-1 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer" title="Attach Image">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              </button>
+
+              <textarea id="chat-input" rows="1" class="flex-1 max-h-48 resize-none bg-transparent border-0 focus:ring-0 px-4 py-3 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none leading-relaxed" placeholder="Message Universal AI..."></textarea>
+              
+              <button type="submit" id="btn-send" class="p-3 mb-1 mr-1 rounded-full text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
               </button>
             </div>
@@ -202,7 +224,7 @@
     <div class="p-6">
       <h3 class="text-xl font-semibold mb-4">Global System Prompt</h3>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Define how the AI should behave across all conversations.</p>
-      <textarea id="input-sys-prompt" rows="5" placeholder="You are an expert Linux and Minecraft server administration assistant..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark resize-none"></textarea>
+      <textarea id="input-sys-prompt" rows="5" placeholder="You are an expert assistant..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark resize-none"></textarea>
       <div class="mt-6 flex justify-end gap-3">
         <button id="btn-close-sys-prompt" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">Cancel</button>
         <button id="btn-save-sys-prompt" class="px-4 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">Save</button>
@@ -251,6 +273,13 @@
       const welcomeScreen = document.getElementById('welcome-screen');
       const currentChatTitle = document.getElementById('current-chat-title');
 
+      // Image Attachment Elements
+      const btnAttach = document.getElementById('btn-attach');
+      const fileInput = document.getElementById('file-input');
+      const attachmentPreview = document.getElementById('attachment-preview');
+      const previewImg = document.getElementById('preview-img');
+      const btnRemoveAttachment = document.getElementById('btn-remove-attachment');
+
       // State
       let state = {
         baseUrl: 'https://api.groq.com/openai/v1',
@@ -264,6 +293,7 @@
 
       let isGenerating = false;
       let abortController = null;
+      let currentAttachmentBase64 = null; // Stores image data
 
       // Initialization
       function init() {
@@ -314,7 +344,7 @@
         chatInput.addEventListener('input', function() {
           this.style.height = 'auto';
           this.style.height = (this.scrollHeight) + 'px';
-          btnSend.disabled = this.value.trim() === '';
+          btnSend.disabled = this.value.trim() === '' && !currentAttachmentBase64;
         });
 
         // Hide loader, show app
@@ -323,7 +353,13 @@
       }
 
       function saveState() {
-        localStorage.setItem('universalAiState', JSON.stringify(state));
+        try {
+          localStorage.setItem('universalAiState', JSON.stringify(state));
+        } catch (e) {
+          if(e.name === 'QuotaExceededError') {
+            alert('Local storage is full! Deleting older chats with images might help.');
+          }
+        }
       }
 
       const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -397,6 +433,32 @@
         sysPromptModal.close();
       });
 
+      // --- ATTACHMENT LOGIC ---
+      btnAttach.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          currentAttachmentBase64 = event.target.result;
+          previewImg.src = currentAttachmentBase64;
+          attachmentPreview.classList.remove('hidden');
+          btnSend.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      btnRemoveAttachment.addEventListener('click', () => {
+        currentAttachmentBase64 = null;
+        fileInput.value = '';
+        attachmentPreview.classList.add('hidden');
+        btnSend.disabled = chatInput.value.trim() === '';
+      });
+
       function startNewChat() {
         if (isGenerating) return;
         state.activeChatId = null;
@@ -406,6 +468,10 @@
         currentChatTitle.textContent = 'New Chat';
         chatInput.value = '';
         chatInput.style.height = 'auto';
+        
+        // Clear attachment on new chat
+        btnRemoveAttachment.click();
+        
         renderChatList();
         if(window.innerWidth < 768) closeSidebar();
         chatInput.focus();
@@ -474,7 +540,7 @@
         
         chatMessages.innerHTML = '';
         chat.messages.forEach(msg => {
-          if (msg.role !== 'system') renderMessage(msg.role, msg.content);
+          if (msg.role !== 'system') renderMessage(msg.role, msg.content, msg.attachment);
         });
         
         renderChatList();
@@ -489,19 +555,24 @@
         });
       }
 
-      function renderMessage(role, content, msgId = null) {
+      function renderMessage(role, content, attachment = null, msgId = null) {
         const div = document.createElement('div');
         div.className = `flex gap-4 w-full ${role === 'user' ? 'justify-end' : 'justify-start'}`;
         if (msgId) div.id = msgId;
 
         const innerDiv = document.createElement('div');
         
+        let mediaHtml = '';
+        if (attachment) {
+          mediaHtml = `<img src="${attachment}" class="max-w-full sm:max-w-[250px] rounded-lg mb-2 shadow-sm border border-gray-200 dark:border-gray-700">`;
+        }
+
         if (role === 'user') {
-          innerDiv.className = 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 px-5 py-3 rounded-3xl max-w-[85%] text-[15px] leading-relaxed whitespace-pre-wrap';
-          innerDiv.textContent = content;
+          innerDiv.className = 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 px-5 py-3 rounded-3xl max-w-[85%] text-[15px] leading-relaxed whitespace-pre-wrap flex flex-col items-end';
+          innerDiv.innerHTML = mediaHtml + escapeHtml(content);
         } else {
           innerDiv.className = 'text-gray-800 dark:text-gray-100 py-2 w-full max-w-[90%] md:max-w-[85%] prose dark:prose-invert text-[15px] leading-relaxed';
-          innerDiv.innerHTML = parseMarkdown(content);
+          innerDiv.innerHTML = mediaHtml + parseMarkdown(content);
         }
 
         div.appendChild(innerDiv);
@@ -528,7 +599,9 @@
         }
 
         const text = chatInput.value.trim();
-        if (!text) return;
+        const attachedImage = currentAttachmentBase64;
+        
+        if (!text && !attachedImage) return;
 
         if (!state.apiKey) {
           alert('Please set your API Key in Settings first.');
@@ -536,10 +609,12 @@
           return;
         }
 
+        // 1. Initialize new chat if needed
         if (!state.activeChatId) {
+          const chatTitleText = text || "Image Upload";
           const newChat = {
             id: generateId(),
-            title: text.substring(0, 30) + (text.length > 30 ? '...' : ''),
+            title: chatTitleText.substring(0, 30) + (chatTitleText.length > 30 ? '...' : ''),
             messages: []
           };
           if (state.systemPrompt) {
@@ -553,20 +628,25 @@
 
         const activeChat = state.chats.find(c => c.id === state.activeChatId);
         
-        activeChat.messages.push({ role: 'user', content: text });
+        // 2. Add message to local state
+        activeChat.messages.push({ role: 'user', content: text, attachment: attachedImage });
         saveState();
         
+        // 3. UI Updates
         welcomeScreen.classList.add('hidden');
         chatMessages.classList.remove('hidden');
         
-        renderMessage('user', text);
+        renderMessage('user', text, attachedImage);
+        
         chatInput.value = '';
         chatInput.style.height = 'auto';
+        btnRemoveAttachment.click(); // Clear attachment UI
         chatInput.focus();
         scrollToBottom();
 
+        // 4. API Request Setup
         const aiMsgId = 'msg-' + generateId();
-        const aiContentEl = renderMessage('assistant', '', aiMsgId);
+        const aiContentEl = renderMessage('assistant', '', null, aiMsgId);
         aiContentEl.classList.add('streaming-cursor');
         
         isGenerating = true;
@@ -576,8 +656,21 @@
         let aiFullText = '';
 
         try {
-          // Dynamic endpoint construction
           const endpoint = `${state.baseUrl}/chat/completions`;
+
+          // Format payload. If image exists, use OpenAI Vision Array format
+          const payloadMessages = activeChat.messages.map(m => {
+            if (m.attachment) {
+              return {
+                role: m.role,
+                content: [
+                  { type: "text", text: m.content || "Analyze this image." },
+                  { type: "image_url", image_url: { url: m.attachment } }
+                ]
+              };
+            }
+            return { role: m.role, content: m.content };
+          });
 
           const response = await fetch(endpoint, {
             method: 'POST',
@@ -587,15 +680,15 @@
             },
             body: JSON.stringify({
               model: state.model,
-              messages: activeChat.messages.map(m => ({ role: m.role, content: m.content })),
+              messages: payloadMessages,
               stream: true
             }),
             signal: abortController.signal
           });
 
           if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error?.message || err.message || 'API request failed');
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error?.message || `HTTP Error ${response.status}`);
           }
 
           const reader = response.body.getReader();
