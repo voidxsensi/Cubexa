@@ -1,665 +1,455 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Universal AI Chat</title>
-  
-  <!-- Tailwind CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CUBEXA AI</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            sidebar: { light: '#f0f4f9', dark: '#1e1f22' },
-            main: { light: '#ffffff', dark: '#131314' },
-            accent: { light: '#0b57d0', dark: '#a8c7fa' }
-          }
-        }
-      }
     }
   </script>
-
-  <!-- Marked.js & DOMPurify for Markdown parsing safely -->
+  <!-- Marked.js for Markdown Rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-
+  <!-- DOMPurify for XSS Protection -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
   <style>
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
-    .dark ::-webkit-scrollbar-thumb { background-color: #475569; }
-    
-    /* Markdown Prose Styles */
-    .prose pre {
-      background-color: #1e293b !important;
-      color: #e2e8f0 !important;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      margin-top: 0.5em;
-      margin-bottom: 0.5em;
-    }
-    .prose code {
-      font-family: monospace;
-      background-color: rgba(100,116,139,0.2);
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.25rem;
-      font-size: 0.875em;
-    }
-    .prose pre code {
-      background-color: transparent;
-      padding: 0;
-    }
-    .prose p { margin-bottom: 0.75em; }
-    .prose p:last-child { margin-bottom: 0; }
-    .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 0.75em; }
-    .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 0.75em; }
-    
-    /* Blinking Cursor for Streaming */
     .streaming-cursor::after {
       content: '▋';
       display: inline-block;
-      animation: blink 1s step-end infinite;
+      animation: blink 1s infinite;
       margin-left: 2px;
-      color: currentColor;
+      color: #6366f1;
     }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-    /* Dialog backdrop */
-    dialog::backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
   </style>
 </head>
-<body class="bg-main-light dark:bg-main-dark text-gray-800 dark:text-gray-200 min-h-[100dvh] flex font-sans transition-colors duration-200">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans h-screen flex flex-col md:flex-row overflow-hidden">
 
-  <!-- LOADING FALLBACK -->
-  <div id="loading" class="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-[9999]">
-    <div class="flex flex-col items-center">
-      <div class="w-10 h-10 border-4 border-gray-200 border-t-accent-light dark:border-gray-700 dark:border-t-accent-dark rounded-full animate-spin"></div>
-      <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Loading App...</p>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-full md:w-64 bg-gray-100 dark:bg-gray-800/80 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 z-20">
+    <div class="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
+          C
+        </div>
+        <span class="font-extrabold text-xl tracking-wide text-indigo-600 dark:text-indigo-400">CUBEXA</span>
+      </div>
+      <button id="newChatBtn" class="p-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition" title="New Chat">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+      </button>
     </div>
-  </div>
 
-  <!-- MAIN APP WRAPPER -->
-  <div id="app" class="flex w-full min-h-[100dvh] hidden relative">
-    
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-72 bg-sidebar-light dark:bg-sidebar-dark flex flex-col border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 transform -translate-x-full md:translate-x-0 h-[100dvh]">
-      <div class="p-4 flex items-center justify-between">
-        <button id="btn-new-chat" class="flex-1 flex items-center gap-2 bg-white dark:bg-main-dark border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 px-4 py-3 rounded-full text-sm font-medium transition-colors shadow-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-          New chat
-        </button>
-        <button id="btn-close-sidebar" class="md:hidden ml-2 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
+    <!-- Saved Chat History List -->
+    <div id="chatHistoryList" class="flex-1 overflow-y-auto p-3 space-y-1"></div>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <button id="themeToggle" class="p-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition" title="Toggle Theme">
+        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
+      <button id="settingsBtn" class="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span>Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Interface -->
+  <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-white dark:bg-gray-900">
+    <!-- Top Header -->
+    <header class="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4">
+      <div class="flex items-center space-x-3">
+        <h1 class="font-bold text-gray-800 dark:text-gray-100">CUBEXA AI</h1>
+        <span id="modelBadge" class="text-xs bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 rounded-full font-mono">gpt-4o</span>
       </div>
+      <button id="clearChatBtn" class="text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition">Clear Chat</button>
+    </header>
 
-      <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1" id="chat-list"></div>
-
-      <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-        <button id="btn-sys-prompt" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-          System Prompt
-        </button>
-        <button id="btn-settings" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 text-sm font-medium transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          Settings
-        </button>
+    <!-- Chat Viewport -->
+    <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+      <div id="welcomeMessage" class="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500 dark:text-gray-400">
+        <div class="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-3xl font-black mb-4 shadow-xl">
+          C
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Welcome to CUBEXA</h2>
+        <p class="max-w-md text-sm">How can I assist you today? Feel free to ask questions, attach photos, or upload files.</p>
       </div>
-    </aside>
+    </div>
 
-    <!-- MOBILE SIDEBAR OVERLAY -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+    <!-- Attachment Thumbnail Previews -->
+    <div id="attachmentPreviews" class="hidden px-4 py-2 border-t border-gray-100 dark:border-gray-800 flex gap-3 overflow-x-auto bg-gray-50 dark:bg-gray-800/40"></div>
 
-    <!-- MAIN CHAT AREA -->
-    <main class="flex-1 flex flex-col h-[100dvh] relative min-w-0">
+    <!-- Chat Form / Input -->
+    <div class="p-3 md:p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <form id="chatForm" class="flex items-end gap-2 max-w-4xl mx-auto relative">
+        
+        <!-- Hidden File Input -->
+        <input type="file" id="fileInput" class="hidden" accept="image/*, .txt, .json, .md, .js, .py, .csv" multiple>
+
+        <!-- '+' Attachment Button -->
+        <button type="button" id="attachBtn" class="p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition flex-shrink-0 focus:outline-none" title="Attach photos or files">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </button>
+
+        <!-- Textarea -->
+        <textarea id="chatInput" rows="1" class="flex-1 resize-none bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-xl p-3 max-h-36 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base" placeholder="Message CUBEXA..."></textarea>
+
+        <!-- Send Button -->
+        <button type="submit" id="sendBtn" class="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition flex-shrink-0 disabled:opacity-50">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-gray-200 dark:border-gray-700">
+      <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-3">
+        <h3 class="font-bold text-lg text-gray-800 dark:text-gray-100">CUBEXA Settings</h3>
+        <button id="closeSettingsBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold">&times;</button>
+      </div>
       
-      <!-- HEADER -->
-      <header class="flex items-center justify-between p-4 bg-main-light/80 dark:bg-main-dark/80 backdrop-blur-md sticky top-0 z-20">
-        <div class="flex items-center gap-3">
-          <button id="btn-menu" class="md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          </button>
-          <h1 class="text-xl font-medium tracking-tight text-gray-800 dark:text-gray-100" id="current-chat-title">Universal AI Chat</h1>
+      <div class="space-y-3 text-sm">
+        <div>
+          <label class="block font-medium mb-1">API Base Endpoint</label>
+          <input type="text" id="apiEndpointInput" class="w-full p-2.5 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="https://api.openai.com/v1">
         </div>
-        <button id="btn-theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Toggle Dark Mode">
-          <svg id="icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-          <svg id="icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-        </button>
-      </header>
-
-      <!-- MESSAGES AREA -->
-      <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:px-8 pb-32">
-        <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-6">
-          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg flex items-center justify-center">
-             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-          </div>
-          <h2 class="text-3xl md:text-4xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">How can I help you today?</h2>
-          <p class="text-gray-500 dark:text-gray-400">Configure your API base URL, key, and model in Settings to begin.</p>
+        <div>
+          <label class="block font-medium mb-1">API Key</label>
+          <input type="password" id="apiKeyInput" class="w-full p-2.5 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="sk-...">
         </div>
-        <div id="chat-messages" class="max-w-3xl mx-auto flex flex-col gap-6 hidden"></div>
-      </div>
-
-      <!-- INPUT AREA -->
-      <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-main-light via-main-light to-transparent dark:from-main-dark dark:via-main-dark p-4 pt-10">
-        <div class="max-w-3xl mx-auto relative group">
-          <form id="chat-form" class="relative flex items-end shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded-3xl bg-white dark:bg-[#1e1f22] border border-gray-200 dark:border-gray-700 transition-colors focus-within:border-gray-300 dark:focus-within:border-gray-500">
-            <textarea id="chat-input" rows="1" class="w-full max-h-48 resize-none bg-transparent border-0 focus:ring-0 px-6 py-4 text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none leading-relaxed" placeholder="Message Universal AI..."></textarea>
-            <div class="p-2 h-full flex items-center mb-1">
-              <button type="submit" id="btn-send" class="p-2 rounded-full text-white bg-black dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-              </button>
-            </div>
-          </form>
-          <div class="text-center mt-2 text-xs text-gray-400 dark:text-gray-500">
-            AI can make mistakes. Verify important information.
-          </div>
+        <div>
+          <label class="block font-medium mb-1">Model ID</label>
+          <input type="text" id="modelInput" class="w-full p-2.5 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="gpt-4o">
+        </div>
+        <div>
+          <label class="block font-medium mb-1">System Prompt</label>
+          <textarea id="systemPromptInput" rows="3" class="w-full p-2.5 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="You are CUBEXA..."></textarea>
         </div>
       </div>
 
-    </main>
+      <div class="pt-2 flex justify-end">
+        <button id="saveSettingsBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition text-sm">Save Configuration</button>
+      </div>
+    </div>
   </div>
 
-  <!-- SETTINGS MODAL -->
-  <dialog id="settings-modal" class="bg-white dark:bg-sidebar-dark rounded-2xl shadow-2xl p-0 w-full max-w-md border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">
-    <div class="p-6">
-      <h3 class="text-xl font-semibold mb-4">Settings</h3>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Provider Presets</label>
-          <select id="select-provider-preset" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark">
-            <option value="groq">Groq Cloud (Ultra Fast & Free)</option>
-            <option value="openrouter">OpenRouter AI</option>
-            <option value="custom">Custom OpenAI-Compatible API</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">API Base URL</label>
-          <input type="text" id="input-base-url" placeholder="https://api.groq.com/openai/v1" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">API Key</label>
-          <input type="password" id="input-api-key" placeholder="gsk_... or sk-or-v1-..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Model Name</label>
-          <input type="text" id="input-model" placeholder="llama-3.3-70b-versatile" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark">
-        </div>
-      </div>
-      <div class="mt-6 flex justify-end gap-3">
-        <button id="btn-close-settings" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">Cancel</button>
-        <button id="btn-save-settings" class="px-4 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">Save</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- SYSTEM PROMPT MODAL -->
-  <dialog id="sys-prompt-modal" class="bg-white dark:bg-sidebar-dark rounded-2xl shadow-2xl p-0 w-full max-w-lg border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">
-    <div class="p-6">
-      <h3 class="text-xl font-semibold mb-4">Global System Prompt</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Define how the AI should behave across all conversations.</p>
-      <textarea id="input-sys-prompt" rows="5" placeholder="You are an expert Linux and Minecraft server administration assistant..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#131314] border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-light dark:focus:ring-accent-dark resize-none"></textarea>
-      <div class="mt-6 flex justify-end gap-3">
-        <button id="btn-close-sys-prompt" class="px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">Cancel</button>
-        <button id="btn-save-sys-prompt" class="px-4 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">Save</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JavaScript Logic -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // Elements
-      const app = document.getElementById('app');
-      const loading = document.getElementById('loading');
-      
-      const sidebar = document.getElementById('sidebar');
-      const sidebarOverlay = document.getElementById('sidebar-overlay');
-      const btnMenu = document.getElementById('btn-menu');
-      const btnCloseSidebar = document.getElementById('btn-close-sidebar');
-      const btnNewChat = document.getElementById('btn-new-chat');
-      const chatListEl = document.getElementById('chat-list');
-      
-      const btnThemeToggle = document.getElementById('btn-theme-toggle');
-      const iconSun = document.getElementById('icon-sun');
-      const iconMoon = document.getElementById('icon-moon');
-      
-      const btnSettings = document.getElementById('btn-settings');
-      const settingsModal = document.getElementById('settings-modal');
-      const btnCloseSettings = document.getElementById('btn-close-settings');
-      const btnSaveSettings = document.getElementById('btn-save-settings');
-      const selectPreset = document.getElementById('select-provider-preset');
-      const inputBaseUrl = document.getElementById('input-base-url');
-      const inputApiKey = document.getElementById('input-api-key');
-      const inputModel = document.getElementById('input-model');
-      
-      const btnSysPrompt = document.getElementById('btn-sys-prompt');
-      const sysPromptModal = document.getElementById('sys-prompt-modal');
-      const btnCloseSysPrompt = document.getElementById('btn-close-sys-prompt');
-      const btnSaveSysPrompt = document.getElementById('btn-save-sys-prompt');
-      const inputSysPrompt = document.getElementById('input-sys-prompt');
-      
-      const chatForm = document.getElementById('chat-form');
-      const chatInput = document.getElementById('chat-input');
-      const btnSend = document.getElementById('btn-send');
-      const messagesContainer = document.getElementById('messages-container');
-      const chatMessages = document.getElementById('chat-messages');
-      const welcomeScreen = document.getElementById('welcome-screen');
-      const currentChatTitle = document.getElementById('current-chat-title');
+    // Configuration & State
+    const DEFAULT_CONFIG = {
+      apiEndpoint: 'https://api.openai.com/v1',
+      apiKey: '',
+      model: 'gpt-4o',
+      systemPrompt: 'You are CUBEXA, a highly capable, intelligent, and friendly AI assistant.'
+    };
 
-      // State
-      let state = {
-        baseUrl: 'https://api.groq.com/openai/v1',
-        apiKey: '',
-        model: 'llama-3.3-70b-versatile',
-        systemPrompt: '',
-        darkMode: false,
-        chats: [],
-        activeChatId: null
-      };
+    let config = JSON.parse(localStorage.getItem('cubexa_config')) || { ...DEFAULT_CONFIG };
+    let messages = JSON.parse(localStorage.getItem('cubexa_messages')) || [];
+    let currentAttachments = [];
 
-      let isGenerating = false;
-      let abortController = null;
+    // DOM Elements
+    const messagesContainer = document.getElementById('messagesContainer');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const attachBtn = document.getElementById('attachBtn');
+    const fileInput = document.getElementById('fileInput');
+    const attachmentPreviews = document.getElementById('attachmentPreviews');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const themeToggle = document.getElementById('themeToggle');
+    const modelBadge = document.getElementById('modelBadge');
 
-      // Initialization
-      function init() {
-        try {
-          const savedState = localStorage.getItem('universalAiState');
-          if (savedState) {
-            const parsed = JSON.parse(savedState);
-            state = { ...state, ...parsed };
-          }
-        } catch (e) {
-          console.error('Failed to load state', e);
-        }
+    // Settings Inputs
+    const apiEndpointInput = document.getElementById('apiEndpointInput');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const modelInput = document.getElementById('modelInput');
+    const systemPromptInput = document.getElementById('systemPromptInput');
 
-        applyTheme();
-        
-        // Settings prepopulate
-        inputBaseUrl.value = state.baseUrl || 'https://api.groq.com/openai/v1';
-        inputApiKey.value = state.apiKey || '';
-        inputModel.value = state.model || 'llama-3.3-70b-versatile';
-        inputSysPrompt.value = state.systemPrompt || '';
+    // Initialize UI
+    function init() {
+      modelBadge.textContent = config.model || 'gpt-4o';
+      renderMessages();
 
-        // Preset Listener
-        selectPreset.addEventListener('change', (e) => {
-          const val = e.target.value;
-          if (val === 'groq') {
-            inputBaseUrl.value = 'https://api.groq.com/openai/v1';
-            inputModel.value = 'llama-3.3-70b-versatile';
-          } else if (val === 'openrouter') {
-            inputBaseUrl.value = 'https://openrouter.ai/api/v1';
-            inputModel.value = 'meta-llama/llama-3.3-70b-instruct:free';
-          }
-        });
-
-        // Marked.js config
-        if (typeof marked !== 'undefined') {
-          marked.setOptions({ breaks: true, gfm: true });
-        }
-
-        renderChatList();
-        
-        if (state.chats.length > 0) {
-          loadChat(state.chats[0].id);
-        } else {
-          startNewChat();
-        }
-
-        // Auto-resize textarea
-        chatInput.addEventListener('input', function() {
-          this.style.height = 'auto';
-          this.style.height = (this.scrollHeight) + 'px';
-          btnSend.disabled = this.value.trim() === '';
-        });
-
-        // Hide loader, show app
-        loading.classList.add('hidden');
-        app.classList.remove('hidden');
-      }
-
-      function saveState() {
-        localStorage.setItem('universalAiState', JSON.stringify(state));
-      }
-
-      const generateId = () => Math.random().toString(36).substr(2, 9);
-      
-      const escapeHtml = (unsafe) => {
-        return (unsafe || '').toString()
-             .replace(/&/g, "&amp;")
-             .replace(/</g, "&lt;")
-             .replace(/>/g, "&gt;")
-             .replace(/"/g, "&quot;")
-             .replace(/'/g, "&#039;");
-      };
-
-      function applyTheme() {
-        if (state.darkMode) {
-          document.documentElement.classList.add('dark');
-          iconSun.classList.remove('hidden');
-          iconMoon.classList.add('hidden');
-        } else {
-          document.documentElement.classList.remove('dark');
-          iconSun.classList.add('hidden');
-          iconMoon.classList.remove('hidden');
-        }
-      }
-
-      btnThemeToggle.addEventListener('click', () => {
-        state.darkMode = !state.darkMode;
-        saveState();
-        applyTheme();
-      });
-
-      function openSidebar() {
-        sidebar.classList.remove('-translate-x-full');
-        sidebarOverlay.classList.remove('hidden');
-      }
-      
-      function closeSidebar() {
-        sidebar.classList.add('-translate-x-full');
-        sidebarOverlay.classList.add('hidden');
-      }
-
-      btnMenu.addEventListener('click', openSidebar);
-      btnCloseSidebar.addEventListener('click', closeSidebar);
-      sidebarOverlay.addEventListener('click', closeSidebar);
-
-      btnSettings.addEventListener('click', () => {
-        inputBaseUrl.value = state.baseUrl;
-        inputApiKey.value = state.apiKey;
-        inputModel.value = state.model;
-        settingsModal.showModal();
-        if(window.innerWidth < 768) closeSidebar();
-      });
-      btnCloseSettings.addEventListener('click', () => settingsModal.close());
-      btnSaveSettings.addEventListener('click', () => {
-        state.baseUrl = inputBaseUrl.value.trim().replace(/\/+$/, '');
-        state.apiKey = inputApiKey.value.trim();
-        state.model = inputModel.value.trim() || 'llama-3.3-70b-versatile';
-        saveState();
-        settingsModal.close();
-      });
-
-      btnSysPrompt.addEventListener('click', () => {
-        inputSysPrompt.value = state.systemPrompt;
-        sysPromptModal.showModal();
-        if(window.innerWidth < 768) closeSidebar();
-      });
-      btnCloseSysPrompt.addEventListener('click', () => sysPromptModal.close());
-      btnSaveSysPrompt.addEventListener('click', () => {
-        state.systemPrompt = inputSysPrompt.value.trim();
-        saveState();
-        sysPromptModal.close();
-      });
-
-      function startNewChat() {
-        if (isGenerating) return;
-        state.activeChatId = null;
-        chatMessages.innerHTML = '';
-        welcomeScreen.classList.remove('hidden');
-        chatMessages.classList.add('hidden');
-        currentChatTitle.textContent = 'New Chat';
-        chatInput.value = '';
+      // Textarea Auto-resize
+      chatInput.addEventListener('input', () => {
         chatInput.style.height = 'auto';
-        renderChatList();
-        if(window.innerWidth < 768) closeSidebar();
-        chatInput.focus();
-      }
+        chatInput.style.height = chatInput.scrollHeight + 'px';
+      });
+    }
 
-      btnNewChat.addEventListener('click', startNewChat);
+    // Attachment '+' Handler
+    attachBtn.addEventListener('click', () => fileInput.click());
 
-      function renderChatList() {
-        chatListEl.innerHTML = '';
-        state.chats.forEach(chat => {
-          const isActive = chat.id === state.activeChatId;
-          const div = document.createElement('div');
-          div.className = `group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isActive ? 'bg-gray-200 dark:bg-gray-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'}`;
-          
-          const titleSpan = document.createElement('span');
-          titleSpan.className = 'truncate text-sm font-medium flex-1 mr-2';
-          titleSpan.textContent = chat.title || 'New Chat';
-          titleSpan.onclick = () => loadChat(chat.id);
-
-          const actionsDiv = document.createElement('div');
-          actionsDiv.className = 'hidden group-hover:flex items-center gap-1';
-
-          const btnRename = document.createElement('button');
-          btnRename.innerHTML = `<svg class="w-4 h-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
-          btnRename.onclick = (e) => {
-            e.stopPropagation();
-            const newTitle = prompt('Rename chat:', chat.title);
-            if (newTitle !== null && newTitle.trim() !== '') {
-              chat.title = newTitle.trim();
-              saveState();
-              renderChatList();
-              if (isActive) currentChatTitle.textContent = chat.title;
-            }
+    fileInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      for (const file of files) {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            const base64 = evt.target.result;
+            currentAttachments.push({ type: 'image', data: base64, name: file.name });
+            renderAttachmentPreviews();
           };
-
-          const btnDelete = document.createElement('button');
-          btnDelete.innerHTML = `<svg class="w-4 h-4 text-red-400 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-          btnDelete.onclick = (e) => {
-            e.stopPropagation();
-            if (confirm('Delete this chat?')) {
-              state.chats = state.chats.filter(c => c.id !== chat.id);
-              saveState();
-              if (isActive) startNewChat();
-              else renderChatList();
-            }
-          };
-
-          actionsDiv.appendChild(btnRename);
-          actionsDiv.appendChild(btnDelete);
-          
-          div.appendChild(titleSpan);
-          div.appendChild(actionsDiv);
-          chatListEl.appendChild(div);
-        });
-      }
-
-      function loadChat(chatId) {
-        if (isGenerating) return;
-        const chat = state.chats.find(c => c.id === chatId);
-        if (!chat) return;
-
-        state.activeChatId = chatId;
-        currentChatTitle.textContent = chat.title;
-        welcomeScreen.classList.add('hidden');
-        chatMessages.classList.remove('hidden');
-        
-        chatMessages.innerHTML = '';
-        chat.messages.forEach(msg => {
-          if (msg.role !== 'system') renderMessage(msg.role, msg.content);
-        });
-        
-        renderChatList();
-        scrollToBottom();
-        if(window.innerWidth < 768) closeSidebar();
-      }
-
-      function scrollToBottom() {
-        messagesContainer.scrollTo({
-          top: messagesContainer.scrollHeight,
-          behavior: 'smooth'
-        });
-      }
-
-      function renderMessage(role, content, msgId = null) {
-        const div = document.createElement('div');
-        div.className = `flex gap-4 w-full ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-        if (msgId) div.id = msgId;
-
-        const innerDiv = document.createElement('div');
-        
-        if (role === 'user') {
-          innerDiv.className = 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 px-5 py-3 rounded-3xl max-w-[85%] text-[15px] leading-relaxed whitespace-pre-wrap';
-          innerDiv.textContent = content;
+          reader.readAsDataURL(file);
         } else {
-          innerDiv.className = 'text-gray-800 dark:text-gray-100 py-2 w-full max-w-[90%] md:max-w-[85%] prose dark:prose-invert text-[15px] leading-relaxed';
-          innerDiv.innerHTML = parseMarkdown(content);
-        }
-
-        div.appendChild(innerDiv);
-        chatMessages.appendChild(div);
-        return innerDiv;
-      }
-
-      function parseMarkdown(text) {
-        if (!text) return '';
-        try {
-          const rawMarkup = marked.parse(text);
-          return DOMPurify.sanitize(rawMarkup);
-        } catch (e) {
-          return escapeHtml(text);
-        }
-      }
-
-      // Form Submit & Universal Streaming Logic
-      chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (isGenerating) {
-          if (abortController) abortController.abort();
-          return;
-        }
-
-        const text = chatInput.value.trim();
-        if (!text) return;
-
-        if (!state.apiKey) {
-          alert('Please set your API Key in Settings first.');
-          settingsModal.showModal();
-          return;
-        }
-
-        if (!state.activeChatId) {
-          const newChat = {
-            id: generateId(),
-            title: text.substring(0, 30) + (text.length > 30 ? '...' : ''),
-            messages: []
+          // Plain Text files
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            const textContent = evt.target.result;
+            currentAttachments.push({ type: 'file', data: textContent, name: file.name });
+            renderAttachmentPreviews();
           };
-          if (state.systemPrompt) {
-            newChat.messages.push({ role: 'system', content: state.systemPrompt });
-          }
-          state.chats.unshift(newChat);
-          state.activeChatId = newChat.id;
-          currentChatTitle.textContent = newChat.title;
-          renderChatList();
+          reader.readAsText(file);
         }
-
-        const activeChat = state.chats.find(c => c.id === state.activeChatId);
-        
-        activeChat.messages.push({ role: 'user', content: text });
-        saveState();
-        
-        welcomeScreen.classList.add('hidden');
-        chatMessages.classList.remove('hidden');
-        
-        renderMessage('user', text);
-        chatInput.value = '';
-        chatInput.style.height = 'auto';
-        chatInput.focus();
-        scrollToBottom();
-
-        const aiMsgId = 'msg-' + generateId();
-        const aiContentEl = renderMessage('assistant', '', aiMsgId);
-        aiContentEl.classList.add('streaming-cursor');
-        
-        isGenerating = true;
-        btnSend.innerHTML = `<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path></svg>`;
-        
-        abortController = new AbortController();
-        let aiFullText = '';
-
-        try {
-          // Dynamic endpoint construction
-          const endpoint = `${state.baseUrl}/chat/completions`;
-
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${state.apiKey}`
-            },
-            body: JSON.stringify({
-              model: state.model,
-              messages: activeChat.messages.map(m => ({ role: m.role, content: m.content })),
-              stream: true
-            }),
-            signal: abortController.signal
-          });
-
-          if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error?.message || err.message || 'API request failed');
-          }
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = '';
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (trimmedLine.startsWith('data: ')) {
-                const dataStr = trimmedLine.slice(6);
-                if (dataStr === '[DONE]') break;
-                
-                try {
-                  const data = JSON.parse(dataStr);
-                  const content = data.choices[0]?.delta?.content;
-                  if (content) {
-                    aiFullText += content;
-                    aiContentEl.innerHTML = parseMarkdown(aiFullText);
-                    scrollToBottom();
-                  }
-                } catch (e) {
-                  // Partial chunk parse ignore
-                }
-              }
-            }
-          }
-          
-        } catch (error) {
-          if (error.name !== 'AbortError') {
-            console.error('API Error:', error);
-            aiFullText += `\n\n**Error:** ${error.message}`;
-            aiContentEl.innerHTML = parseMarkdown(aiFullText);
-          }
-        } finally {
-          aiContentEl.classList.remove('streaming-cursor');
-          isGenerating = false;
-          btnSend.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`;
-          
-          if (aiFullText.trim() !== '') {
-            activeChat.messages.push({ role: 'assistant', content: aiFullText });
-            saveState();
-          }
-        }
-      });
-
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          if(!btnSend.disabled && !isGenerating) {
-            chatForm.dispatchEvent(new Event('submit'));
-          }
-        }
-      });
-
-      init();
+      }
+      fileInput.value = '';
     });
+
+    function renderAttachmentPreviews() {
+      if (currentAttachments.length === 0) {
+        attachmentPreviews.classList.add('hidden');
+        attachmentPreviews.innerHTML = '';
+        return;
+      }
+      attachmentPreviews.classList.remove('hidden');
+      attachmentPreviews.innerHTML = currentAttachments.map((att, index) => `
+        <div class="relative group flex-shrink-0">
+          ${att.type === 'image' 
+            ? `<img src="${att.data}" class="h-16 w-16 object-cover rounded-lg border border-gray-300 dark:border-gray-600">`
+            : `<div class="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex flex-col items-center justify-center p-1 text-center border border-gray-300 dark:border-gray-600">
+                <span class="text-xs font-bold truncate w-full">${att.name}</span>
+               </div>`
+          }
+          <button type="button" onclick="removeAttachment(${index})" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 shadow">×</button>
+        </div>
+      `).join('');
+    }
+
+    window.removeAttachment = function(index) {
+      currentAttachments.splice(index, 1);
+      renderAttachmentPreviews();
+    };
+
+    // Render Messages
+    function renderMessages() {
+      if (messages.length === 0) {
+        welcomeMessage.classList.remove('hidden');
+        messagesContainer.innerHTML = '';
+        messagesContainer.appendChild(welcomeMessage);
+        return;
+      }
+      welcomeMessage.classList.add('hidden');
+      messagesContainer.innerHTML = '';
+
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
+        
+        let contentHtml = '';
+        if (typeof msg.content === 'string') {
+          contentHtml = DOMPurify.sanitize(marked.parse(msg.content));
+        } else if (Array.isArray(msg.content)) {
+          // Vision Payload
+          msg.content.forEach(part => {
+            if (part.type === 'text') contentHtml += DOMPurify.sanitize(marked.parse(part.text));
+            if (part.type === 'image_url') contentHtml += `<img src="${part.image_url.url}" class="max-w-xs rounded-lg my-2 border border-gray-300 dark:border-gray-700">`;
+          });
+        }
+
+        div.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[75%] rounded-2xl p-4 ${
+            msg.role === 'user' 
+              ? 'bg-indigo-600 text-white rounded-br-none' 
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-700'
+          }">
+            <div class="text-xs font-semibold mb-1 opacity-75">${msg.role === 'user' ? 'You' : 'CUBEXA'}</div>
+            <div class="prose dark:prose-invert text-sm max-w-none break-words">${contentHtml}</div>
+          </div>
+        `;
+        messagesContainer.appendChild(div);
+      });
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Submit Message to API
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text && currentAttachments.length === 0) return;
+
+      if (!config.apiKey) {
+        alert('Please configure your API Key in Settings first!');
+        openSettings();
+        return;
+      }
+
+      // Format Message Payload
+      let userContent;
+      if (currentAttachments.length > 0) {
+        userContent = [];
+        if (text) userContent.push({ type: 'text', text: text });
+        currentAttachments.forEach(att => {
+          if (att.type === 'image') {
+            userContent.push({ type: 'image_url', image_url: { url: att.data } });
+          } else {
+            userContent.push({ type: 'text', text: `\n[Attached File: ${att.name}]\n${att.data}\n` });
+          }
+        });
+      } else {
+        userContent = text;
+      }
+
+      messages.push({ role: 'user', content: userContent });
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      currentAttachments = [];
+      renderAttachmentPreviews();
+      renderMessages();
+
+      // Create Assistant Container for Streaming
+      const assistantDiv = document.createElement('div');
+      assistantDiv.className = 'flex justify-start';
+      assistantDiv.innerHTML = `
+        <div class="max-w-[85%] md:max-w-[75%] rounded-2xl p-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-700">
+          <div class="text-xs font-semibold mb-1 opacity-75">CUBEXA</div>
+          <div id="activeStream" class="prose dark:prose-invert text-sm max-w-none break-words streaming-cursor"></div>
+        </div>
+      `;
+      messagesContainer.appendChild(assistantDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      const activeStream = document.getElementById('activeStream');
+      let fullResponse = '';
+
+      try {
+        const payloadMessages = [
+          { role: 'system', content: config.systemPrompt || DEFAULT_CONFIG.systemPrompt },
+          ...messages
+        ];
+
+        const response = await fetch(`${config.apiEndpoint.replace(/\/+$/, '')}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${config.apiKey}`
+          },
+          body: JSON.stringify({
+            model: config.model || 'gpt-4o',
+            messages: payloadMessages,
+            stream: true
+          })
+        });
+
+        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+          for (const line of lines) {
+            const dataStr = line.replace(/^data: /, '').trim();
+            if (dataStr === '[DONE]') break;
+
+            try {
+              const parsed = JSON.parse(dataStr);
+              const content = parsed.choices[0]?.delta?.content || '';
+              fullResponse += content;
+              activeStream.innerHTML = DOMPurify.sanitize(marked.parse(fullResponse));
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (err) {}
+          }
+        }
+
+        activeStream.classList.remove('streaming-cursor');
+        activeStream.removeAttribute('id');
+        messages.push({ role: 'assistant', content: fullResponse });
+        localStorage.setItem('cubexa_messages', JSON.stringify(messages));
+
+      } catch (err) {
+        activeStream.classList.remove('streaming-cursor');
+        activeStream.innerHTML = `<span class="text-red-500 font-semibold">Error: ${err.message}</span>`;
+      }
+    });
+
+    // Clear Chat
+    clearChatBtn.addEventListener('click', () => {
+      if (confirm('Clear current conversation with CUBEXA?')) {
+        messages = [];
+        localStorage.removeItem('cubexa_messages');
+        renderMessages();
+      }
+    });
+
+    newChatBtn.addEventListener('click', () => {
+      messages = [];
+      localStorage.removeItem('cubexa_messages');
+      renderMessages();
+    });
+
+    // Settings Modal Handlers
+    function openSettings() {
+      apiEndpointInput.value = config.apiEndpoint;
+      apiKeyInput.value = config.apiKey;
+      modelInput.value = config.model;
+      systemPromptInput.value = config.systemPrompt;
+      settingsModal.classList.remove('hidden');
+    }
+
+    settingsBtn.addEventListener('click', openSettings);
+    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+    saveSettingsBtn.addEventListener('click', () => {
+      config.apiEndpoint = apiEndpointInput.value.trim() || DEFAULT_CONFIG.apiEndpoint;
+      config.apiKey = apiKeyInput.value.trim();
+      config.model = modelInput.value.trim() || DEFAULT_CONFIG.model;
+      config.systemPrompt = systemPromptInput.value.trim() || DEFAULT_CONFIG.systemPrompt;
+
+      localStorage.setItem('cubexa_config', JSON.stringify(config));
+      modelBadge.textContent = config.model;
+      settingsModal.classList.add('hidden');
+    });
+
+    // Theme Toggle
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // Run Initializer
+    init();
   </script>
 </body>
-                                                                                       </html>
+</html>
