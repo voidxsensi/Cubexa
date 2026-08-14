@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cubexa AI</title>
+  <title>ASTRONAUT CLOUD AI</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,9 +13,9 @@
       theme: {
         extend: {
           colors: {
-            sidebar: { light: '#f8fafc', dark: '#0f172a' },
-            main: { light: '#ffffff', dark: '#020617' },
-            accent: { light: '#2563eb', dark: '#3b82f6' }
+            sidebar: { light: '#0f172a', dark: '#0a0e1a' },
+            main: { light: '#f8fafc', dark: '#030712' },
+            accent: { light: '#0284c7', dark: '#38bdf8' }
           }
         }
       }
@@ -29,21 +29,21 @@
   <style>
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
-    .dark ::-webkit-scrollbar-thumb { background-color: #334155; }
+    ::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 4px; }
     
     .prose pre {
-      background-color: #0f172a !important;
+      background-color: #0d1527 !important;
       color: #f8fafc !important;
       padding: 1rem;
       border-radius: 0.75rem;
       overflow-x: auto;
       margin-top: 0.5em;
       margin-bottom: 0.5em;
+      border: 1px solid rgba(56, 189, 248, 0.1);
     }
     .prose code {
       font-family: monospace;
-      background-color: rgba(148, 163, 184, 0.2);
+      background-color: rgba(56, 189, 248, 0.15);
       padding: 0.125rem 0.25rem;
       border-radius: 0.25rem;
       font-size: 0.875em;
@@ -57,96 +57,103 @@
       display: inline-block;
       animation: blink 1s step-end infinite;
       margin-left: 2px;
-      color: #3b82f6;
+      color: #38bdf8;
     }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-    dialog::backdrop { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+    dialog::backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); }
   </style>
 </head>
-<body class="bg-main-light dark:bg-main-dark text-slate-800 dark:text-slate-100 min-h-[100dvh] flex font-sans transition-colors duration-200">
+<body class="bg-main-light dark:bg-main-dark text-slate-800 dark:text-slate-100 h-[100dvh] flex font-sans transition-colors duration-200 overflow-hidden">
 
   <!-- LOGIN SCREEN -->
-  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
-      <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
+  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 w-36 h-36 bg-sky-500/20 rounded-full blur-3xl"></div>
+      
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">C</div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Cubexa</h1>
+        <img src="logo.png" alt="ASTRONAUT CLOUD" class="w-12 h-12 object-contain drop-shadow-md" onerror="this.style.display='none'; document.getElementById('fallback-logo-login').classList.remove('hidden');">
+        <div id="fallback-logo-login" class="hidden w-12 h-12 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg">AC</div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">ASTRONAUT CLOUD</h1>
+          <p class="text-[10px] tracking-widest uppercase font-semibold text-sky-400 mt-1">AI Assistant Platform</p>
+        </div>
       </div>
-      <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Log in with your API credentials to start chatting.</p>
+      
+      <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">Log in with your API provider credentials to access the chat studio.</p>
       
       <form id="login-form" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Your Name</label>
-          <input type="text" id="login-username" placeholder="e.g. Alex" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+          <input type="text" id="login-username" placeholder="e.g. Commander" required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none text-sm">
         </div>
 
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Provider Preset</label>
-          <select id="login-preset" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-            <option value="groq" selected>Groq Cloud (Recommended)</option>
+          <select id="login-preset" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none text-sm">
+            <option value="openrouter" selected>OpenRouter (Free Auto-Vision)</option>
+            <option value="groq">Groq Cloud API</option>
             <option value="custom">Google Gemini API</option>
-            <option value="openrouter">OpenRouter AI</option>
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">API Key</label>
-          <input type="password" id="login-apikey" placeholder="gsk_... / AIza... / sk-or-..." required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono">
+          <input type="password" id="login-apikey" placeholder="sk-or-... / gsk_... / AIza..." required class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none text-sm font-mono">
         </div>
 
-        <button type="submit" class="w-full mt-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 transition-all">Log In to Cubexa</button>
+        <button type="submit" class="w-full mt-2 py-3 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl shadow-lg shadow-sky-500/25 transition-all">Launch Astronaut Cloud</button>
       </form>
     </div>
   </div>
 
   <!-- MAIN APP WRAPPER -->
-  <div id="app" class="flex w-full min-h-[100dvh] relative">
+  <div id="app" class="flex w-full h-[100dvh] relative overflow-hidden">
     
     <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-72 bg-sidebar-light dark:bg-sidebar-dark flex flex-col border-r border-slate-200 dark:border-slate-800/80 transition-transform duration-300 transform -translate-x-full md:translate-x-0 h-[100dvh]">
-      <div class="p-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-base shadow">C</div>
-          <span class="font-bold text-lg tracking-tight">Cubexa</span>
+      <div class="p-4 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/50">
+        <div class="flex items-center gap-2.5">
+          <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain" onerror="this.style.display='none'; document.getElementById('fallback-logo-side').classList.remove('hidden');">
+          <div id="fallback-logo-side" class="hidden w-8 h-8 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">AC</div>
+          <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">ASTRONAUT CLOUD</span>
         </div>
         <button id="btn-close-sidebar" class="md:hidden p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
 
-      <div class="px-3 mb-2">
-        <button id="btn-new-chat" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-md shadow-blue-500/20">
+      <div class="px-3 pt-3 mb-2">
+        <button id="btn-new-chat" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all shadow-md shadow-sky-500/20">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-          New Chat
+          New Session
         </button>
       </div>
 
       <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1" id="chat-list"></div>
 
-      <!-- USER & SYSTEM ACTIONS -->
+      <!-- USER ACTIONS -->
       <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
         <div class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider flex justify-between items-center">
-          <span>Logged in as</span>
-          <span id="user-display-name" class="text-blue-500 font-bold lowercase">user</span>
+          <span>Pilot</span>
+          <span id="user-display-name" class="text-sky-400 font-bold lowercase">user</span>
         </div>
         <button id="btn-logs" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800/60 text-sm font-medium transition-colors">
-          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-          System Logs
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          Telemetry Logs
         </button>
         <button id="btn-settings" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800/60 text-sm font-medium transition-colors">
-          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
-          Settings
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+          Config Settings
         </button>
-        <button id="btn-logout" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 text-red-500 text-sm font-medium transition-colors">
+        <button id="btn-logout" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 text-red-400 text-sm font-medium transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-          Log Out
+          Disconnect
         </button>
       </div>
     </aside>
 
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden backdrop-blur-sm"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden backdrop-blur-sm"></div>
 
     <!-- MAIN CHAT AREA -->
     <main class="flex-1 flex flex-col h-[100dvh] relative min-w-0">
@@ -156,8 +163,8 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
           </button>
           <div>
-            <h1 class="text-base font-semibold tracking-tight" id="current-chat-title">New Conversation</h1>
-            <p id="current-model-tag" class="text-xs text-slate-400 font-mono">llama-3.3-70b-versatile</p>
+            <h1 class="text-base font-bold tracking-tight" id="current-chat-title">New Conversation</h1>
+            <p id="current-model-tag" class="text-xs text-sky-400 font-mono">openrouter/free</p>
           </div>
         </div>
         <button id="btn-theme-toggle" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -166,12 +173,14 @@
         </button>
       </header>
 
-      <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-8 pb-36">
+      <!-- MESSAGES CONTAINER WITH FIXED SCROLL & EXTRA PADDING -->
+      <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-8 pb-40">
         <div id="welcome-screen" class="h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto space-y-6">
-          <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center text-white font-bold text-3xl">C</div>
+          <img src="logo.png" alt="ASTRONAUT CLOUD" class="w-28 h-28 object-contain drop-shadow-2xl" onerror="this.style.display='none'; document.getElementById('fallback-welcome-logo').classList.remove('hidden');">
+          <div id="fallback-welcome-logo" class="hidden w-24 h-24 bg-gradient-to-tr from-sky-600 to-indigo-600 rounded-3xl shadow-2xl shadow-sky-500/20 flex items-center justify-center text-white font-bold text-4xl">AC</div>
           <div>
-            <h2 class="text-3xl font-bold tracking-tight">Welcome to Cubexa</h2>
-            <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Groq-accelerated AI engine. Use the <strong>+</strong> icon to attach an image before sending!</p>
+            <h2 class="text-3xl font-extrabold tracking-tight">ASTRONAUT CLOUD</h2>
+            <p class="text-slate-400 mt-2 text-sm">High-performance AI workspace. Attach images using the <strong>+</strong> button before sending.</p>
           </div>
         </div>
         <div id="chat-messages" class="max-w-3xl mx-auto flex flex-col gap-6 hidden"></div>
@@ -180,7 +189,7 @@
       <!-- INPUT BOX -->
       <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-main-light via-main-light to-transparent dark:from-main-dark dark:via-main-dark p-4 pt-10">
         <div class="max-w-3xl mx-auto">
-          <form id="chat-form" class="relative flex flex-col shadow-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 transition-all focus-within:border-blue-500">
+          <form id="chat-form" class="relative flex flex-col shadow-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 transition-all focus-within:border-sky-500">
             
             <div id="attachment-preview" class="hidden px-4 pt-4">
               <div class="relative inline-block">
@@ -194,13 +203,13 @@
             <div class="flex items-end w-full p-2">
               <input type="file" id="file-input" class="hidden" accept="image/png, image/jpeg, image/webp, image/gif">
               
-              <button type="button" id="btn-attach" class="p-2.5 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Attach Image">
+              <button type="button" id="btn-attach" class="p-2.5 text-slate-400 hover:text-sky-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Attach Image">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
               </button>
 
-              <textarea id="chat-input" rows="1" class="flex-1 max-h-48 resize-none bg-transparent border-0 focus:ring-0 px-3 py-2.5 text-sm outline-none leading-relaxed" placeholder="Message Cubexa..."></textarea>
+              <textarea id="chat-input" rows="1" class="flex-1 max-h-48 resize-none bg-transparent border-0 focus:ring-0 px-3 py-2.5 text-sm outline-none leading-relaxed" placeholder="Message Astronaut Cloud..."></textarea>
               
-              <button type="submit" id="btn-send" class="p-2.5 rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              <button type="submit" id="btn-send" class="p-2.5 rounded-xl text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
               </button>
             </div>
@@ -214,7 +223,7 @@
   <!-- SETTINGS MODAL -->
   <dialog id="settings-modal" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-0 w-full max-w-md border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100">
     <div class="p-6">
-      <h3 class="text-lg font-bold mb-4">Settings</h3>
+      <h3 class="text-lg font-bold mb-4">Astronaut Cloud Settings</h3>
       <div class="space-y-4 text-sm">
         <div>
           <label class="block font-semibold mb-1">API Base URL</label>
@@ -231,7 +240,7 @@
       </div>
       <div class="mt-6 flex justify-end gap-3">
         <button id="btn-close-settings" class="px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancel</button>
-        <button id="btn-save-settings" class="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700">Save</button>
+        <button id="btn-save-settings" class="px-4 py-2 text-sm font-medium bg-sky-600 text-white rounded-xl hover:bg-sky-500">Save</button>
       </div>
     </div>
   </dialog>
@@ -240,13 +249,13 @@
   <dialog id="logs-modal" class="bg-slate-950 text-slate-200 rounded-2xl shadow-2xl p-0 w-full max-w-2xl border border-slate-800">
     <div class="p-6 flex flex-col h-[500px]">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold font-mono text-emerald-400 flex items-center gap-2">
-          <span>></span> Cubexa Debug Logs
+        <h3 class="text-base font-bold font-mono text-sky-400 flex items-center gap-2">
+          <span>></span> Astronaut Cloud Telemetry
         </h3>
         <button id="btn-clear-logs" class="text-xs text-slate-400 hover:text-white">Clear</button>
       </div>
       <div id="logs-content" class="flex-1 bg-black/60 rounded-xl p-4 overflow-y-auto font-mono text-xs leading-relaxed space-y-1 select-text">
-        <p class="text-slate-500">[System] Cubexa ready.</p>
+        <p class="text-slate-500">[System] Astronaut Cloud engine initialized.</p>
       </div>
       <div class="mt-4 flex justify-end">
         <button id="btn-close-logs" class="px-4 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-xl">Close</button>
@@ -308,10 +317,10 @@
 
       let state = {
         username: '',
-        baseUrl: 'https://api.groq.com/openai/v1',
+        baseUrl: 'https://openrouter.ai/api/v1',
         apiKey: '',
-        model: 'llama-3.3-70b-versatile',
-        darkMode: false,
+        model: 'openrouter/free',
+        darkMode: true,
         chats: [],
         activeChatId: null,
         isLoggedIn: false
@@ -324,7 +333,7 @@
       function logMessage(type, msg) {
         const time = new Date().toLocaleTimeString();
         const p = document.createElement('p');
-        p.className = type === 'error' ? 'text-red-400' : (type === 'warn' ? 'text-amber-400' : 'text-emerald-400');
+        p.className = type === 'error' ? 'text-red-400' : (type === 'warn' ? 'text-amber-400' : 'text-sky-400');
         p.textContent = `[${time}] [${type.toUpperCase()}] ${msg}`;
         logsContent.appendChild(p);
         logsContent.scrollTop = logsContent.scrollHeight;
@@ -332,13 +341,11 @@
 
       function init() {
         try {
-          const savedState = localStorage.getItem('cubexaState');
+          const savedState = localStorage.getItem('astronautCloudState');
           if (savedState) {
             state = { ...state, ...JSON.parse(savedState) };
           }
-        } catch (e) {
-          console.error('Failed to load state', e);
-        }
+        } catch (e) {}
 
         applyTheme();
 
@@ -374,7 +381,7 @@
 
       function saveState() {
         try {
-          localStorage.setItem('cubexaState', JSON.stringify(state));
+          localStorage.setItem('astronautCloudState', JSON.stringify(state));
         } catch (e) {}
       }
 
@@ -390,26 +397,26 @@
         state.apiKey = key;
         state.isLoggedIn = true;
 
-        if (preset === 'groq') {
+        if (preset === 'openrouter') {
+          state.baseUrl = 'https://openrouter.ai/api/v1';
+          state.model = 'openrouter/free';
+        } else if (preset === 'groq') {
           state.baseUrl = 'https://api.groq.com/openai/v1';
           state.model = 'llama-3.3-70b-versatile';
         } else if (preset === 'custom') {
           state.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai';
           state.model = 'gemini-2.0-flash';
-        } else if (preset === 'openrouter') {
-          state.baseUrl = 'https://openrouter.ai/api/v1';
-          state.model = 'qwen/qwen-2-vl-72b-instruct:free';
         }
 
         saveState();
         userDisplayName.textContent = state.username;
         currentModelTag.textContent = state.model;
-        logMessage('info', `Logged in as ${state.username} using model ${state.model}`);
+        logMessage('info', `Connected as ${state.username} via ${state.model}`);
         loginScreen.classList.add('hidden');
       });
 
       btnLogout.addEventListener('click', () => {
-        if (confirm('Log out of Cubexa?')) {
+        if (confirm('Disconnect from Astronaut Cloud?')) {
           state.isLoggedIn = false;
           saveState();
           loginScreen.classList.remove('hidden');
@@ -465,11 +472,11 @@
       btnSaveSettings.addEventListener('click', () => {
         state.baseUrl = inputBaseUrl.value.trim().replace(/\/+$/, '');
         state.apiKey = inputApiKey.value.trim();
-        state.model = inputModel.value.trim() || 'llama-3.3-70b-versatile';
+        state.model = inputModel.value.trim() || 'openrouter/free';
         currentModelTag.textContent = state.model;
         saveState();
         settingsModal.close();
-        logMessage('info', `Settings updated. Target Model: ${state.model}`);
+        logMessage('info', `Target Model set to: ${state.model}`);
       });
 
       btnAttach.addEventListener('click', () => fileInput.click());
@@ -478,14 +485,14 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        btnSend.disabled = true; // Temporary disable while reading
+        btnSend.disabled = true;
         const reader = new FileReader();
         reader.onload = (event) => {
           currentAttachmentBase64 = event.target.result;
           previewImg.src = currentAttachmentBase64;
           attachmentPreview.classList.remove('hidden');
           btnSend.disabled = false;
-          logMessage('info', 'Image successfully loaded into preview buffer.');
+          logMessage('info', 'Image buffered for attachment.');
         };
         reader.readAsDataURL(file);
       });
@@ -517,15 +524,15 @@
         state.chats.forEach(chat => {
           const isActive = chat.id === state.activeChatId;
           const div = document.createElement('div');
-          div.className = `group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs font-medium transition-colors ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold' : 'hover:bg-slate-200/60 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400'}`;
+          div.className = `group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs font-medium transition-colors ${isActive ? 'bg-sky-500/10 text-sky-400 font-semibold border border-sky-500/20' : 'hover:bg-slate-200/60 dark:hover:bg-slate-800/60 text-slate-400'}`;
           
           const titleSpan = document.createElement('span');
           titleSpan.className = 'truncate flex-1 mr-2';
-          titleSpan.textContent = chat.title || 'New Chat';
+          titleSpan.textContent = chat.title || 'New Session';
           titleSpan.onclick = () => loadChat(chat.id);
 
           const btnDelete = document.createElement('button');
-          btnDelete.className = 'hidden group-hover:block text-slate-400 hover:text-red-500';
+          btnDelete.className = 'hidden group-hover:block text-slate-400 hover:text-red-400';
           btnDelete.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
           btnDelete.onclick = (e) => {
             e.stopPropagation();
@@ -560,8 +567,11 @@
         scrollToBottom();
       }
 
+      // INSTANT SCROLL FIX TO PREVENT LOCKUP DURING AI STREAMING
       function scrollToBottom() {
-        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
       }
 
       function parseMarkdown(text) {
@@ -571,12 +581,12 @@
         const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/gi;
         
         processedText = processedText.replace(thinkRegex, (match, thinkContent) => {
-          return `<details class="my-3 border border-blue-500/20 rounded-xl bg-blue-500/5 dark:bg-blue-500/10 overflow-hidden group">
-            <summary class="px-3 py-2 cursor-pointer text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-2 select-none hover:bg-blue-500/10 transition-colors">
-              <svg class="w-4 h-4 animate-pulse text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-              <span>Thought Process</span>
+          return `<details class="my-3 border border-sky-500/20 rounded-xl bg-sky-500/5 dark:bg-sky-500/10 overflow-hidden group">
+            <summary class="px-3 py-2 cursor-pointer text-xs font-semibold text-sky-400 flex items-center gap-2 select-none hover:bg-sky-500/10 transition-colors">
+              <svg class="w-4 h-4 animate-pulse text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+              <span>Thinking Process</span>
             </summary>
-            <div class="px-4 py-3 text-xs text-slate-600 dark:text-slate-300 border-t border-blue-500/10 font-mono whitespace-pre-wrap leading-relaxed">${thinkContent.trim()}</div>
+            <div class="px-4 py-3 text-xs text-slate-300 border-t border-sky-500/10 font-mono whitespace-pre-wrap leading-relaxed">${thinkContent.trim()}</div>
           </details>`;
         });
 
@@ -594,13 +604,13 @@
         if (msgId) div.id = msgId;
 
         const innerDiv = document.createElement('div');
-        let mediaHtml = attachment ? `<img src="${attachment}" class="max-w-[240px] rounded-xl mb-2 shadow border border-slate-200 dark:border-slate-700">` : '';
+        let mediaHtml = attachment ? `<img src="${attachment}" class="max-w-[260px] rounded-xl mb-2 shadow-lg border border-slate-700">` : '';
 
         if (role === 'user') {
-          innerDiv.className = 'bg-blue-600 text-white px-4 py-2.5 rounded-2xl max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap flex flex-col items-end shadow-sm';
+          innerDiv.className = 'bg-sky-600 text-white px-4 py-2.5 rounded-2xl max-w-[85%] text-sm leading-relaxed whitespace-pre-wrap flex flex-col items-end shadow-sm';
           innerDiv.innerHTML = mediaHtml + (content ? `<span>${content}</span>` : '');
         } else {
-          innerDiv.className = 'text-slate-800 dark:text-slate-100 py-1 w-full max-w-[90%] md:max-w-[85%] prose dark:prose-invert text-sm leading-relaxed';
+          innerDiv.className = 'text-slate-100 py-1 w-full max-w-[90%] md:max-w-[85%] prose dark:prose-invert text-sm leading-relaxed';
           innerDiv.innerHTML = mediaHtml + parseMarkdown(content);
         }
 
@@ -624,7 +634,7 @@
         if (!state.activeChatId) {
           const newChat = {
             id: Math.random().toString(36).substr(2, 9),
-            title: text.substring(0, 25) || "Image Discussion",
+            title: text.substring(0, 25) || "Image Analysis",
             messages: []
           };
           state.chats.unshift(newChat);
@@ -650,7 +660,7 @@
         aiContentEl.classList.add('streaming-cursor');
         
         isGenerating = true;
-        btnSend.innerHTML = `<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path></svg>`;
+        btnSend.innerHTML = `<svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path></svg>`;
         
         abortController = new AbortController();
         let aiFullText = '';
@@ -658,27 +668,24 @@
         try {
           const endpoint = `${state.baseUrl}/chat/completions`;
 
-          // Auto-Switch Model to Vision Model if Image is attached
+          // Auto-Switch Vision Model handling
           let targetModel = state.model;
           if (attachedImage) {
-            if (state.baseUrl.includes('groq.com')) {
-              targetModel = 'llama-3.2-11b-vision-instruct'; // Active Groq Vision Model
-              logMessage('warn', 'Image detected! Switch Groq model to llama-3.2-11b-vision-instruct');
+            if (state.baseUrl.includes('openrouter.ai')) {
+              targetModel = 'openrouter/free'; // Reliable free vision router
             } else if (state.baseUrl.includes('googleapis.com')) {
               targetModel = 'gemini-2.0-flash';
-              logMessage('info', 'Image detected! Utilizing gemini-2.0-flash');
             }
           }
 
-          logMessage('info', `Sending payload to ${endpoint} using model: ${targetModel}`);
+          logMessage('info', `Streaming response from ${targetModel}`);
 
-          // Construct API Messages Payload
           const payloadMessages = activeChat.messages.map((m) => {
             if (m.attachment) {
               return {
                 role: m.role,
                 content: [
-                  { type: "text", text: m.content || "Describe or respond to this image." },
+                  { type: "text", text: m.content || "Describe or analyze this image." },
                   { type: "image_url", image_url: { url: m.attachment } }
                 ]
               };
@@ -733,7 +740,7 @@
                   if (content) {
                     aiFullText += content;
                     aiContentEl.innerHTML = parseMarkdown(aiFullText);
-                    scrollToBottom();
+                    scrollToBottom(); // Instant scroll triggers during streaming
                   }
                 } catch (e) {}
               }
@@ -743,7 +750,7 @@
         } catch (error) {
           if (error.name !== 'AbortError') {
             logMessage('error', error.message);
-            aiFullText += `\n\n> ⚠️ **API Error:** ${error.message}\n> *Open System Logs for details.*`;
+            aiFullText += `\n\n> ⚠️ **API Error:** ${error.message}\n> *Open Telemetry Logs for full details.*`;
             aiContentEl.innerHTML = parseMarkdown(aiFullText);
           }
         } finally {
